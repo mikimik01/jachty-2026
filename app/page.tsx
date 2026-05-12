@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Countdown } from "@/components/countdown";
 import { WaveDecoration, FadeIn, SectionHeader } from "@/components/shared";
-import { TRIP_CONFIG, BOATS, TOTAL_PER_PERSON, COSTS } from "@/lib/data";
+import { useData } from "@/lib/use-data";
 
 const highlights = [
   {
@@ -16,7 +16,7 @@ const highlights = [
   },
   {
     icon: Users,
-    title: `${TRIP_CONFIG.totalPeople} Osób`,
+    title: "24 Osoby",
     description: "Ekipa marzeń – 8 osób na każdej łódce",
   },
   {
@@ -32,14 +32,22 @@ const highlights = [
 ];
 
 export default function HomePage() {
+  const { data } = useData();
+
+  const totalPerPerson = data?.totalPerPerson ?? 0;
+  const boatCount = data?.boats.length ?? 3;
+  const totalPeople = data?.people.length || data?.tripConfig?.total_people || 24;
+  const costs = data?.costs ?? [];
+
+  const refundablePerPerson = costs.filter((c) => c.is_refundable).reduce((s, c) => s + c.per_person, 0);
+  const nonRefundablePerPerson = totalPerPerson - refundablePerPerson;
+
   return (
     <div className="relative">
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
 
-        {/* Floating decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
             animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
@@ -72,7 +80,6 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          {/* Main title */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -91,7 +98,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
-              3 jachty. {TRIP_CONFIG.totalPeople} osoby. Tydzień na Mazurach.
+              {boatCount} jachty. {totalPeople} osoby. Tydzień na Mazurach.
               <br />
               <span className="text-primary font-semibold">
                 Rejs, którego nie zapomnisz.
@@ -99,7 +106,6 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          {/* Countdown */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -112,7 +118,6 @@ export default function HomePage() {
             <Countdown />
           </motion.div>
 
-          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,7 +139,6 @@ export default function HomePage() {
           </motion.div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -185,25 +189,25 @@ export default function HomePage() {
       {/* Quick stats */}
       <section className="py-20 px-4 bg-primary/5">
         <div className="max-w-4xl mx-auto">
-          <SectionHeader
-            title="W skrócie"
-            emoji="📊"
-          />
+          <SectionHeader title="W skrócie" emoji="📊" />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FadeIn delay={0}>
               <div className="text-center p-8 rounded-2xl bg-card border border-border/50">
                 <p className="text-4xl font-bold text-gradient mb-2">
-                  {TOTAL_PER_PERSON.toLocaleString("pl-PL")} zł
+                  {nonRefundablePerPerson > 0 ? `${nonRefundablePerPerson.toLocaleString("pl-PL", { maximumFractionDigits: 0 })} zł` : "—"}
                 </p>
                 <p className="text-muted-foreground">Koszt na osobę</p>
+                {refundablePerPerson > 0 && (
+                  <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                    + {refundablePerPerson.toLocaleString("pl-PL", { maximumFractionDigits: 0 })} zł kaucja zwrotna 🔄
+                  </p>
+                )}
               </div>
             </FadeIn>
             <FadeIn delay={0.1}>
               <div className="text-center p-8 rounded-2xl bg-card border border-border/50">
-                <p className="text-4xl font-bold text-gradient mb-2">
-                  {BOATS.length}
-                </p>
+                <p className="text-4xl font-bold text-gradient mb-2">{boatCount}</p>
                 <p className="text-muted-foreground">Antile 33.3</p>
               </div>
             </FadeIn>
@@ -215,28 +219,29 @@ export default function HomePage() {
             </FadeIn>
           </div>
 
-          {/* Cost quick preview */}
-          <FadeIn delay={0.3}>
-            <div className="mt-8 p-6 rounded-2xl bg-card border border-border/50">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {COSTS.slice(0, 6).map((cost) => (
-                  <div key={cost.id} className="flex items-center gap-3">
-                    <span className="text-2xl">{cost.icon}</span>
-                    <div>
-                      <p className="text-sm font-medium">{cost.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {cost.perPerson.toLocaleString("pl-PL")} zł/os
-                      </p>
+          {costs.length > 0 && (
+            <FadeIn delay={0.3}>
+              <div className="mt-8 p-6 rounded-2xl bg-card border border-border/50">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {costs.slice(0, 6).map((cost) => (
+                    <div key={cost.id} className="flex items-center gap-3">
+                      <span className="text-2xl">{cost.icon}</span>
+                      <div>
+                        <p className="text-sm font-medium">{cost.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {cost.per_person.toLocaleString("pl-PL", { maximumFractionDigits: 0 })} zł/os
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          </FadeIn>
+            </FadeIn>
+          )}
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <FadeIn>

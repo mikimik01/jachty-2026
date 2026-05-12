@@ -1,28 +1,38 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Crown, User } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Crown, User, RefreshCw } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SectionHeader, FadeIn } from "@/components/shared";
-import { BOATS, TOTAL_PER_PERSON } from "@/lib/data";
+import { useData } from "@/lib/use-data";
 
 export default function LodkiPage() {
+  const { data, loading } = useData();
+
+  if (loading || !data) {
+    return (
+      <div className="py-20 text-center">
+        <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           title="Załogi"
-          subtitle="3 jachty, 24 żeglarzy – sprawdź kto płynie na Twojej łódce"
+          subtitle={`${data.boats.length} jachty, ${data.people.length} żeglarzy – sprawdź kto płynie na Twojej łódce`}
           emoji="⛵"
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {BOATS.map((boat, boatIndex) => {
+          {data.boats.map((boat, boatIndex) => {
             const totalPaid = boat.crew.reduce((sum, p) => sum + p.paid, 0);
-            const totalDue = boat.crew.reduce((sum, p) => sum + p.totalDue, 0);
-            const progressPercent = Math.round((totalPaid / totalDue) * 100);
+            const totalDue = boat.crew.reduce((sum, p) => sum + p.total_due, 0);
+            const progressPercent = totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
 
             return (
               <FadeIn key={boat.id} delay={boatIndex * 0.15}>
@@ -38,7 +48,7 @@ export default function LodkiPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-3xl font-bold">{boat.crew.length}</p>
-                          <p className="text-white/80 text-sm">/{boat.maxCrew} osób</p>
+                          <p className="text-white/80 text-sm">/{boat.max_crew} osób</p>
                         </div>
                       </div>
                     </div>
@@ -59,10 +69,10 @@ export default function LodkiPage() {
                       {/* Crew list */}
                       <div className="space-y-3">
                         {boat.crew.map((person, i) => {
-                          const personProgress = Math.round(
-                            (person.paid / person.totalDue) * 100
-                          );
-                          const isPaid = person.paid >= person.totalDue;
+                          const personProgress = person.total_due > 0 ? Math.round(
+                            (person.paid / person.total_due) * 100
+                          ) : 0;
+                          const isPaid = person.paid >= person.total_due;
 
                           return (
                             <motion.div
@@ -75,11 +85,11 @@ export default function LodkiPage() {
                             >
                               {/* Avatar */}
                               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                                person.isCaptain
+                                person.is_captain
                                   ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                                   : "bg-primary/10 text-primary"
                               }`}>
-                                {person.isCaptain ? (
+                                {person.is_captain ? (
                                   <Crown className="h-5 w-5" />
                                 ) : (
                                   person.name.charAt(0)
@@ -92,7 +102,7 @@ export default function LodkiPage() {
                                   <p className="font-medium text-sm truncate">
                                     {person.name}
                                   </p>
-                                  {person.isCaptain && (
+                                  {person.is_captain && (
                                     <Badge variant="secondary" className="text-xs px-1.5 py-0">
                                       Kapitan
                                     </Badge>
@@ -126,9 +136,9 @@ export default function LodkiPage() {
                       </div>
 
                       {/* Empty slots */}
-                      {boat.crew.length < boat.maxCrew && (
+                      {boat.crew.length < boat.max_crew && (
                         <div className="mt-3 space-y-2">
-                          {Array.from({ length: boat.maxCrew - boat.crew.length }).map(
+                          {Array.from({ length: boat.max_crew - boat.crew.length }).map(
                             (_, i) => (
                               <div
                                 key={i}

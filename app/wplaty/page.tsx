@@ -3,29 +3,23 @@
 import { useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { SectionHeader, FadeIn } from "@/components/shared";
-import {
-  BOATS,
-  TOTAL_PER_PERSON,
-  PAYMENT_HISTORY,
-  TRIP_CONFIG,
-} from "@/lib/data";
+import { useData } from "@/lib/use-data";
 
 export default function WplatyPage() {
-  const allPeople = BOATS.flatMap((b) => b.crew);
-  const totalCollected = allPeople.reduce((sum, p) => sum + p.paid, 0);
-  const totalNeeded = allPeople.reduce((sum, p) => sum + p.totalDue, 0);
-  const overallProgress = Math.round((totalCollected / totalNeeded) * 100);
+  const { data, loading } = useData();
 
-  const paidFull = allPeople.filter((p) => p.paid >= p.totalDue).length;
-  const paidPartial = allPeople.filter(
-    (p) => p.paid > 0 && p.paid < p.totalDue
-  ).length;
+  const allPeople = data?.people ?? [];
+  const totalCollected = allPeople.reduce((sum, p) => sum + p.paid, 0);
+  const totalNeeded = allPeople.reduce((sum, p) => sum + p.total_due, 0);
+  const overallProgress = totalNeeded > 0 ? Math.round((totalCollected / totalNeeded) * 100) : 0;
+
+  const paidFull = allPeople.filter((p) => p.paid >= p.total_due).length;
+  const paidPartial = allPeople.filter((p) => p.paid > 0 && p.paid < p.total_due).length;
   const paidNothing = allPeople.filter((p) => p.paid === 0).length;
 
   const confettiFired = useRef(false);
@@ -46,6 +40,14 @@ export default function WplatyPage() {
       fireConfetti();
     }
   }, [overallProgress, fireConfetti]);
+
+  if (loading || !data) {
+    return (
+      <div className="py-20 text-center">
+        <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="py-12 px-4">
@@ -117,12 +119,16 @@ export default function WplatyPage() {
 
               <div className="space-y-3">
                 {allPeople
-                  .sort((a, b) => b.paid / b.totalDue - a.paid / a.totalDue)
+                  .sort((a, b) => {
+                    const aRatio = a.total_due > 0 ? a.paid / a.total_due : 0;
+                    const bRatio = b.total_due > 0 ? b.paid / b.total_due : 0;
+                    return bRatio - aRatio;
+                  })
                   .map((person, i) => {
-                    const progress = Math.round(
-                      (person.paid / person.totalDue) * 100
-                    );
-                    const remaining = person.totalDue - person.paid;
+                    const progress = person.total_due > 0
+                      ? Math.round((person.paid / person.total_due) * 100)
+                      : 0;
+                    const remaining = person.total_due - person.paid;
                     const isPaid = remaining <= 0;
 
                     return (
@@ -134,7 +140,6 @@ export default function WplatyPage() {
                         transition={{ delay: i * 0.03 }}
                         className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/30 transition-colors"
                       >
-                        {/* Avatar */}
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                             isPaid
@@ -147,19 +152,17 @@ export default function WplatyPage() {
                           {person.name.charAt(0)}
                         </div>
 
-                        {/* Name + progress */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <p className="font-medium text-sm">{person.name}</p>
                             <p className="text-sm font-medium">
                               {person.paid.toLocaleString("pl-PL")} /{" "}
-                              {person.totalDue.toLocaleString("pl-PL")} zł
+                              {person.total_due.toLocaleString("pl-PL")} zł
                             </p>
                           </div>
                           <Progress value={progress} className="h-1.5" />
                         </div>
 
-                        {/* Status badge */}
                         <Badge
                           className={`shrink-0 text-xs ${
                             isPaid
@@ -204,37 +207,41 @@ export default function WplatyPage() {
             <CardContent className="p-6">
               <h3 className="font-semibold mb-4 text-lg">📜 Ostatnie wpłaty</h3>
               <div className="space-y-3">
-                {PAYMENT_HISTORY.sort(
-                  (a, b) =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime()
-                ).map((payment, i) => (
-                  <motion.div
-                    key={payment.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                {data.payments
+                  .sort((a, b) =>
+                    new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime()
+                  )
+                  .map((payment, i) => (
+                    <motion.div
+                      key={payment.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.05 }}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {payment.person_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {payment.paid_at}
+                            {payment.note && ` · ${payment.note}`}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {payment.personName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {payment.date}
-                          {payment.note && ` · ${payment.note}`}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      +{payment.amount.toLocaleString("pl-PL")} zł
-                    </p>
-                  </motion.div>
-                ))}
+                      <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        +{payment.amount.toLocaleString("pl-PL")} zł
+                      </p>
+                    </motion.div>
+                  ))}
+                {data.payments.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">Brak wpłat</p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Anchor, Menu, X, Ship, Users, DollarSign, CreditCard, Megaphone } from "lucide-react";
+import { Anchor, Menu, X, Ship, Users, DollarSign, CreditCard, Megaphone, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/koszty", label: "Koszty", icon: DollarSign },
   { href: "/wplaty", label: "Wpłaty", icon: CreditCard },
   { href: "/ogloszenia", label: "Ogłoszenia", icon: Megaphone },
+  { href: "/ankieta", label: "Ankieta", icon: ClipboardList },
 ];
 
 export function Navbar() {

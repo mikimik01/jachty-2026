@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Pin, Info, AlertTriangle, PartyPopper } from "lucide-react";
+import { Pin, Info, AlertTriangle, PartyPopper, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader, FadeIn } from "@/components/shared";
-import { ANNOUNCEMENTS } from "@/lib/data";
+import { useData } from "@/lib/use-data";
 
 const typeConfig = {
   info: {
@@ -32,10 +32,20 @@ const typeConfig = {
 };
 
 export default function OgloszeniaPage() {
-  const sorted = [...ANNOUNCEMENTS].sort((a, b) => {
+  const { data, loading } = useData();
+
+  if (loading || !data) {
+    return (
+      <div className="py-20 text-center">
+        <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
+      </div>
+    );
+  }
+
+  const sorted = [...data.announcements].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
+    return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
   });
 
   return (
@@ -49,7 +59,7 @@ export default function OgloszeniaPage() {
 
         <div className="space-y-6">
           {sorted.map((ann, i) => {
-            const config = typeConfig[ann.type];
+            const config = typeConfig[ann.type as keyof typeof typeConfig] || typeConfig.info;
             const Icon = config.icon;
 
             return (
@@ -81,7 +91,7 @@ export default function OgloszeniaPage() {
                                 ·
                               </span>
                               <span className="text-xs text-muted-foreground">
-                                {new Date(ann.date).toLocaleDateString("pl-PL", {
+                                {new Date(ann.published_at).toLocaleDateString("pl-PL", {
                                   day: "numeric",
                                   month: "long",
                                   year: "numeric",
