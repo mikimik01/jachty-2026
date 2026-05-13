@@ -10,6 +10,11 @@ create table trip_config (
   total_people int not null default 24,
   boat_model text not null default 'Antila 33.3',
   boat_count int not null default 3,
+  show_boats boolean not null default true,
+  show_costs boolean not null default true,
+  show_payments boolean not null default true,
+  show_announcements boolean not null default true,
+  show_survey boolean not null default true,
   created_at timestamptz default now()
 );
 

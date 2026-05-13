@@ -42,6 +42,10 @@ export default function OgloszeniaPage() {
     );
   }
 
+  if (data.tripConfig && data.tripConfig.show_announcements === false) {
+    return <div className="py-32 text-center text-muted-foreground">Ta sekcja jest aktualnie wyłączona.</div>;
+  }
+
   const sorted = [...data.announcements].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;

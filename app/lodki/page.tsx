@@ -19,6 +19,10 @@ export default function LodkiPage() {
     );
   }
 
+  if (data.tripConfig && data.tripConfig.show_boats === false) {
+    return <div className="py-32 text-center text-muted-foreground">Ta sekcja jest aktualnie wyłączona.</div>;
+  }
+
   return (
     <div className="py-12 px-4">
       <div className="max-w-6xl mx-auto">

@@ -17,6 +17,11 @@ export async function updateTripConfig(id: string, updates: {
   total_people?: number;
   boat_model?: string;
   boat_count?: number;
+  show_boats?: boolean;
+  show_costs?: boolean;
+  show_payments?: boolean;
+  show_announcements?: boolean;
+  show_survey?: boolean;
 }) {
   const { data, error } = await supabase
     .from("trip_config")

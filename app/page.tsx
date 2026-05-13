@@ -16,13 +16,13 @@ const highlights = [
   },
   {
     icon: Users,
-    title: "24 Osoby",
-    description: "Ekipa marzeń – 8 osób na każdej łódce",
+    title: "27 Osób",
+    description: "Ekipa marzeń – 9 osób na każdej łódce",
   },
   {
     icon: Calendar,
     title: "Tydzień",
-    description: "Pierwsza połowa sierpnia, od soboty do soboty",
+    description: "Lipiec albo sierpień, od soboty do soboty",
   },
   {
     icon: MapPin,
@@ -86,18 +86,18 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <div className="flex items-center justify-center gap-3 mb-6">
-              <Anchor className="h-8 w-8 md:h-10 md:w-10 text-primary" />
-              <span className="text-sm md:text-base font-medium text-muted-foreground uppercase tracking-[0.3em]">
+              <Anchor className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary" />
+              <span className="text-xs sm:text-sm md:text-base font-medium text-muted-foreground uppercase tracking-[0.3em]">
                 Sierpień 2026
               </span>
-              <Anchor className="h-8 w-8 md:h-10 md:w-10 text-primary" />
+              <Anchor className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary" />
             </div>
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight">
               <span className="text-gradient">Jachty 2026</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto px-2">
               {boatCount} jachty. {totalPeople} osoby. Tydzień na Mazurach.
               <br />
               <span className="text-primary font-semibold">

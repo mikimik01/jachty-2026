@@ -91,3 +91,9 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE() {
+  const cookieStore = await cookies();
+  cookieStore.delete("site_token");
+  return NextResponse.json({ ok: true });
+}

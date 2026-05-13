@@ -34,13 +34,13 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
         animate={{ y: 0, opacity: 1 }}
         className="relative"
       >
-        <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-sm">
-          <span className="text-3xl md:text-5xl font-bold text-gradient tabular-nums">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-sm">
+          <span className="text-2xl sm:text-3xl md:text-5xl font-bold text-gradient tabular-nums">
             {String(value).padStart(2, "0")}
           </span>
         </div>
       </motion.div>
-      <span className="text-xs md:text-sm text-muted-foreground mt-2 uppercase tracking-wider font-medium">
+      <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mt-2 uppercase tracking-wider font-medium">
         {label}
       </span>
     </div>
@@ -60,7 +60,7 @@ export function Countdown() {
 
   if (!timeLeft) {
     return (
-      <div className="flex gap-3 md:gap-6 justify-center">
+      <div className="flex gap-2 sm:gap-3 md:gap-6 justify-center">
         {["Dni", "Godz", "Min", "Sek"].map((label) => (
           <CountdownUnit key={label} value={0} label={label} />
         ))}
@@ -69,7 +69,7 @@ export function Countdown() {
   }
 
   return (
-    <div className="flex gap-3 md:gap-6 justify-center">
+    <div className="flex gap-2 sm:gap-3 md:gap-6 justify-center">
       <CountdownUnit value={timeLeft.days} label="Dni" />
       <CountdownUnit value={timeLeft.hours} label="Godz" />
       <CountdownUnit value={timeLeft.minutes} label="Min" />

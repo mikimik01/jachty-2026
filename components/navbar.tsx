@@ -3,20 +3,38 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Anchor, Menu, X, Ship, Users, DollarSign, CreditCard, Megaphone, ClipboardList } from "lucide-react";
+import { Anchor, Menu, X, Ship, Users, DollarSign, CreditCard, Megaphone, ClipboardList, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useData } from "@/lib/use-data";
 
-const navItems = [
-  { href: "/", label: "Start", icon: Ship },
-  { href: "/lodki", label: "Łódki", icon: Users },
-  { href: "/koszty", label: "Koszty", icon: DollarSign },
-  { href: "/wplaty", label: "Wpłaty", icon: CreditCard },
-  { href: "/ogloszenia", label: "Ogłoszenia", icon: Megaphone },
-  { href: "/ankieta", label: "Ankieta", icon: ClipboardList },
+const allNavItems = [
+  { href: "/", label: "Start", icon: Ship, id: "home" },
+  { href: "/lodki", label: "Łódki", icon: Users, id: "show_boats" },
+  { href: "/koszty", label: "Koszty", icon: DollarSign, id: "show_costs" },
+  { href: "/wplaty", label: "Wpłaty", icon: CreditCard, id: "show_payments" },
+  { href: "/ogloszenia", label: "Ogłoszenia", icon: Megaphone, id: "show_announcements" },
+  { href: "/ankieta", label: "Ankieta", icon: ClipboardList, id: "show_survey" },
 ];
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data } = useData();
+
+  const cfg = data?.tripConfig;
+  const navItems = allNavItems.filter((item) => {
+    if (item.id === "home") return true;
+    if (!cfg) return true; // Show all by default if no config
+    return cfg[item.id as keyof typeof cfg] !== false;
+  });
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth", { method: "DELETE" });
+      window.location.href = "/login";
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -43,6 +61,10 @@ export function Navbar() {
                 </Button>
               </Link>
             ))}
+            <div className="w-px h-6 bg-border mx-2" />
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-muted-foreground hover:text-destructive">
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Mobile toggle */}
@@ -79,6 +101,10 @@ export function Navbar() {
                   </Button>
                 </Link>
               ))}
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive">
+                <LogOut className="h-4 w-4" />
+                Wyloguj
+              </Button>
             </div>
           </motion.div>
         )}

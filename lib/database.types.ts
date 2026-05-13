@@ -10,6 +10,11 @@ export type Database = {
           total_people: number;
           boat_model: string;
           boat_count: number;
+          show_boats: boolean;
+          show_costs: boolean;
+          show_payments: boolean;
+          show_announcements: boolean;
+          show_survey: boolean;
           created_at: string;
         };
         Insert: {
@@ -19,6 +24,11 @@ export type Database = {
           total_people: number;
           boat_model: string;
           boat_count: number;
+          show_boats?: boolean;
+          show_costs?: boolean;
+          show_payments?: boolean;
+          show_announcements?: boolean;
+          show_survey?: boolean;
         };
         Update: {
           departure_date?: string;
@@ -27,6 +37,11 @@ export type Database = {
           total_people?: number;
           boat_model?: string;
           boat_count?: number;
+          show_boats?: boolean;
+          show_costs?: boolean;
+          show_payments?: boolean;
+          show_announcements?: boolean;
+          show_survey?: boolean;
         };
       };
       boats: {

@@ -66,6 +66,11 @@ export interface TripConfigData {
   total_people: number;
   boat_model: string;
   boat_count: number;
+  show_boats: boolean;
+  show_costs: boolean;
+  show_payments: boolean;
+  show_announcements: boolean;
+  show_survey: boolean;
   created_at: string;
 }
 
@@ -104,6 +109,11 @@ export function useData() {
           total_people: mock.TRIP_CONFIG.totalPeople,
           boat_model: mock.TRIP_CONFIG.boatModel,
           boat_count: mock.TRIP_CONFIG.boatCount,
+          show_boats: true,
+          show_costs: true,
+          show_payments: true,
+          show_announcements: true,
+          show_survey: true,
           created_at: new Date().toISOString(),
         },
         boats: mock.BOATS.map((b) => ({

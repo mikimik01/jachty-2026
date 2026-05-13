@@ -18,6 +18,10 @@ export default function KosztyPage() {
     );
   }
 
+  if (data.tripConfig && data.tripConfig.show_costs === false) {
+    return <div className="py-32 text-center text-muted-foreground">Ta sekcja jest aktualnie wyłączona.</div>;
+  }
+
   const COSTS = data.costs;
   const TOTAL_PER_PERSON = data.totalPerPerson;
   const totalCapacity = data.boats.reduce((s, b) => s + b.max_crew, 0) || data.tripConfig?.total_people || 24;

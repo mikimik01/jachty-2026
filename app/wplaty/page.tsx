@@ -49,6 +49,10 @@ export default function WplatyPage() {
     );
   }
 
+  if (data.tripConfig && data.tripConfig.show_payments === false) {
+    return <div className="py-32 text-center text-muted-foreground">Ta sekcja jest aktualnie wyłączona.</div>;
+  }
+
   return (
     <div className="py-12 px-4">
       <div className="max-w-5xl mx-auto">

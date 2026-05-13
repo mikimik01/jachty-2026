@@ -109,6 +109,10 @@ export default function AdminPage() {
                 <Megaphone className="h-4 w-4" />
                 <span className="hidden sm:inline">News</span>
               </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-1">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Ustawienia</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* ─── PEOPLE TAB ─── */}
@@ -134,6 +138,11 @@ export default function AdminPage() {
             {/* ─── ANNOUNCEMENTS TAB ─── */}
             <TabsContent value="announcements">
               <AnnouncementsTab data={data} refresh={refresh} isLive={isLive} />
+            </TabsContent>
+
+            {/* ─── SETTINGS TAB ─── */}
+            <TabsContent value="settings">
+              <SettingsTab data={data} refresh={refresh} isLive={isLive} />
             </TabsContent>
           </Tabs>
         </FadeIn>
@@ -936,6 +945,68 @@ function AnnouncementsTab({ data, refresh, isLive }: TabProps) {
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+}
+
+// ─── SETTINGS TAB ───
+
+function SettingsTab({ data, refresh, isLive }: TabProps) {
+  const [busy, setBusy] = useState(false);
+  const cfg = data.tripConfig;
+
+  // Type safe toggle
+  type FlagKeys = "show_boats" | "show_costs" | "show_payments" | "show_announcements" | "show_survey";
+  const handleToggle = async (key: FlagKeys, current: boolean) => {
+    if (!isLive || !cfg) return;
+    setBusy(true);
+    try {
+      await updateTripConfig(cfg.id, { [key]: !current });
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!cfg) return <p className="text-muted-foreground text-sm">Brak konfiguracji wyjazdu.</p>;
+
+  return (
+    <div className="space-y-6">
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="text-lg">Widoczność zakładek dla uczestników</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              { id: "show_boats" as FlagKeys, label: "Łódki (/lodki)", val: cfg.show_boats },
+              { id: "show_costs" as FlagKeys, label: "Koszty (/koszty)", val: cfg.show_costs },
+              { id: "show_payments" as FlagKeys, label: "Wpłaty (/wplaty)", val: cfg.show_payments },
+              { id: "show_announcements" as FlagKeys, label: "Ogłoszenia (/ogloszenia)", val: cfg.show_announcements },
+              { id: "show_survey" as FlagKeys, label: "Ankieta (/ankieta)", val: cfg.show_survey },
+            ].map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/50">
+                <span className="font-medium text-sm">{item.label}</span>
+                <label className="flex items-center cursor-pointer gap-2">
+                  <span className={`text-xs ${item.val ? "text-emerald-500" : "text-destructive"}`}>
+                    {item.val ? "Widoczna" : "Ukryta"}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4"
+                    checked={item.val}
+                    onChange={() => handleToggle(item.id, item.val)}
+                    disabled={busy || !isLive}
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground pt-2">
+            Zablokowane zakładki znikną z nawigacji uczestników (dostęp np. do kosztów czy wpłat będzie chwilowo niemożliwy).
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
