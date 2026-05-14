@@ -35,10 +35,10 @@ export function InAppBrowserWarning() {
     <div className="fixed inset-0 z-[99999] flex flex-col items-center p-6 bg-slate-900/98 backdrop-blur-md text-white">
       {/* IOS - menu na dole (Safari) lub na górze w FB, Android zazwyczaj góra prawo */}
       <div className="absolute top-4 right-6 animate-bounce text-blue-400 flex flex-col items-center">
-        <span className="text-sm font-semibold mb-1">Menu</span>
-        <svg className="w-10 h-10 -rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-10 h-10 rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
+        <span className="text-sm font-semibold mt-1">Menu</span>
       </div>
 
       <div className="mt-24 bg-slate-800 p-8 rounded-2xl max-w-sm w-full shadow-2xl border border-slate-700 text-center">
@@ -48,16 +48,16 @@ export function InAppBrowserWarning() {
           </svg>
         </div>
         
-        <h2 className="text-2xl font-bold mb-3">Zmień przeglądarkę</h2>
+        <h2 className="text-2xl font-bold mb-3">Jebać wewnętrzne przeglądarki!</h2>
         <p className="text-slate-300 mb-6">
-          Ta przeglądarka (Messenger/FB/IG) blokuje niektóre funkcje zapisów na rejs. 
+          Ta przeglądarka (Messenger/FB/IG) blokuje niektóre funkcje zapisów na rejs. Wejdź kurwa przez zwykłą.
         </p>
         
         <div className="bg-slate-900 p-5 rounded-xl text-left border border-slate-700">
           <p className="font-semibold text-white mb-3">Jak przejść do normalnej?</p>
           <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
             <li>Znajdź ikonę <span className="font-bold text-white">3 kropek</span> (prawy górny róg)</li>
-            <li>Kliknij <span className="font-bold text-white">Otwórz w {os === 'ios' ? 'Safari' : 'przeglądarce'}</span></li>
+            <li>Kliknij <span className="font-bold text-white">Otwórz w {os === 'ios' ? 'Safari' : 'przeglądarce'}</span>, albo coś takiego</li>
           </ol>
         </div>
       </div>
