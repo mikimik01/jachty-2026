@@ -241,8 +241,27 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Packing */}
       <section className="py-20 px-4">
+        <div className="max-w-3xl mx-auto text-center border border-border/50 rounded-3xl p-8 sm:p-12 bg-card relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl pointer-events-none">🎒</div>
+          <SectionHeader 
+            title="Co spakować?" 
+            subtitle="Pakowanie na jacht zawsze sprawiało wszystkim problemy, więc w tym roku przygotowaliśmy interaktywną checklistę co zabrać (i czego absolutnie NIE brać)." 
+            emoji="🎒" 
+          />
+          <FadeIn delay={0.2}>
+            <Link href="/co-spakowac">
+              <Button size="lg" className="mt-4 gap-2 text-base px-8 h-14 rounded-full hover:scale-105 transition-transform">
+                Otwórz listę pakowania
+              </Button>
+            </Link>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 px-4 bg-primary/5">
         <div className="max-w-3xl mx-auto text-center">
           <FadeIn>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gradient">

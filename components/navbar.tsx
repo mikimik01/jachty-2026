@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Anchor, Menu, X, Ship, Users, DollarSign, CreditCard, Megaphone, ClipboardList, LogOut } from "lucide-react";
+import { Anchor, Menu, X, Ship, Users, DollarSign, CreditCard, Megaphone, ClipboardList, LogOut, Backpack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/lib/use-data";
 
 const allNavItems = [
   { href: "/", label: "Start", icon: Ship, id: "home" },
   { href: "/lodki", label: "Łódki", icon: Users, id: "show_boats" },
+  { href: "/co-spakowac", label: "Co spakować?", icon: Backpack, id: "show_packing" },
   { href: "/koszty", label: "Koszty", icon: DollarSign, id: "show_costs" },
   { href: "/wplaty", label: "Wpłaty", icon: CreditCard, id: "show_payments" },
   { href: "/ogloszenia", label: "Ogłoszenia", icon: Megaphone, id: "show_announcements" },
