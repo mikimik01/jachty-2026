@@ -14,7 +14,7 @@ const packingList = [
     color: "text-red-500",
     bg: "bg-red-500/10",
     items: [
-      "MIĘKKA torba podróżna lub plecak bez stelaża (żadnych walizek na kółkach - nie ma na nie miejsca i rysują pokład!)",
+      "MIĘKKA torba podróżna lub plecak bez stelaża (walizka to serio ostateczność farfoclu!)",
       "Dowód osobisty / legitymacja",
       "Patent żeglarski (jeśli posiadasz)",
       "Gotówka (na Mazurach w mniejszych portach nie wszędzie można płacić kartą)",
@@ -27,8 +27,8 @@ const packingList = [
     bg: "bg-blue-500/10",
     items: [
       "Kurtka przeciwdeszczowa i wiatroszczelna (sztormiak)",
-      "Ciepły polar lub gruba bluza (wieczory na wodzie bywają chłodne)",
-      "Długie spodnie (najlepiej dresowe lub szybkoschnące, nie jeansy)",
+      "Ciepły polar lub gruba bluza",
+      "Długie spodnie",
       "Krótkie spodenki, t-shirty, koszulki na ramiączkach",
       "Bielizna na zmianę",
       "Strój kąpielowy / kąpielówki",
@@ -41,7 +41,7 @@ const packingList = [
     bg: "bg-cyan-500/10",
     items: [
       "Buty jakieś fajne",
-      "Klapki (pod prysznic w marinie)",
+      "Klapki - no cap -> kurwa istotne hehe",
       "Sandały lub buty do wody (opcjonalnie)",
     ],
   },
