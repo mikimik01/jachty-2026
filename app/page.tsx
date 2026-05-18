@@ -35,8 +35,8 @@ export default function HomePage() {
   const { data } = useData();
 
   const totalPerPerson = data?.totalPerPerson ?? 0;
-  const boatCount = data?.boats.length ?? 3;
-  const totalPeople = data?.people.length || data?.tripConfig?.total_people || 24;
+  const boatCount = data?.boats.length || data?.tripConfig?.boat_count || 3;
+  const totalPeople = data?.tripConfig?.total_people || 27;
   const costs = data?.costs ?? [];
 
   const refundablePerPerson = costs.filter((c) => c.is_refundable).reduce((s, c) => s + c.per_person, 0);

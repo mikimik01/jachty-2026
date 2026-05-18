@@ -79,7 +79,7 @@ const packingList = [
       "Powerbank (kabel do ładowania telefonu)",
       "Latarka (najlepiej czołówka - przydaje się w nocy)",
       "Rękawiczki żeglarskie (w chuj opcjonalne, zle spoko)",
-      "Zatyczki do uszu (TO JEST MUST HAVE - Mateusz chrapie 😉)",
+      "Zatyczki do uszu (TO JEST MUST HAVE 😉)",
       "Karty do gry, planszówki, gitara - W CHUJ WAŻNE",
     ],
   },
