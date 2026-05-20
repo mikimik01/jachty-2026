@@ -99,7 +99,7 @@ create policy "Public write announcements" on announcements for all using (true)
 
 -- Seed data
 insert into trip_config (departure_date, return_date, location, total_people, boat_model, boat_count)
-values ('2026-08-01T10:00:00+02:00', '2026-08-08T10:00:00+02:00', 'Mazury, Polska', 24, 'Antila 33.3', 3);
+values ('2026-08-08T10:00:00+02:00', '2026-08-15T10:00:00+02:00', 'Mazury, Polska', 24, 'Antila 33.3', 3);
 
 insert into boats (name, model, color, emoji, max_crew, sort_order) values
   ('Sztorm', 'Antila 33.3', 'from-blue-500 to-cyan-500', '🌊', 8, 1),
@@ -115,7 +115,7 @@ insert into costs (name, total_cost, icon, description, sort_order) values
   ('Kaucja zwrotna', 9000, '💰', '3x 3000 PLN - zwracana po rejsie bez szkód', 6);
 
 insert into announcements (title, content, author, type, pinned, published_at) values
-  ('🎉 Ruszamy z organizacją!', 'Cześć ekipo! Jachty 2026 nabierają kształtów. 3 Antile 33.3, pierwsza połowa sierpnia, Mazury. Będzie epicko! Wpłaty ruszają - szczegóły w zakładce Koszty.', 'Mikołaj', 'success', true, '2026-05-12'),
-  ('📋 Ankieta - dokładny termin', 'Wypełnijcie ankietę dotyczącą dokładnego terminu! Celujemy w pierwszą połowę sierpnia, od soboty do soboty. Link do ankiety wkrótce.', 'Mikołaj', 'info', false, '2026-05-12'),
+  ('🎉 Ruszamy z organizacją!', 'Cześć ekipo! Jachty 2026 nabierają kształtów. 3 Antile 33.3, 8–15 sierpnia, Mazury. Będzie epicko! Wpłaty ruszają - szczegóły w zakładce Koszty.', 'Mikołaj', 'success', true, '2026-05-12'),
+  ('📋 Termin ustalony!', 'Płyniemy 8–15 sierpnia 2026, od soboty do soboty. Zarezerwujcie sobie ten tydzień!', 'Mikołaj', 'info', false, '2026-05-20'),
   ('💸 Pierwsza rata do 31 maja', 'Żeby zarezerwować jachty, potrzebujemy wpłaty zaliczki 500 PLN od osoby do końca maja. Numer konta w zakładce Wpłaty. Nie zwlekajcie!', 'Mikołaj', 'warning', false, '2026-05-12'),
   ('🧭 Co zabrać na rejs?', 'Podstawy: miękka torba (NIE walizka!), śpiwór, kurtka przeciwdeszczowa, buty z białą podeszwą, krem z filtrem, okulary, latarka. Pełna lista wkrótce!', 'Mikołaj', 'info', false, '2026-05-11');

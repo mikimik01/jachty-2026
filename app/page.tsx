@@ -22,7 +22,7 @@ const highlights = [
   {
     icon: Calendar,
     title: "Tydzień",
-    description: "Lipiec albo sierpień, od soboty do soboty",
+    description: "8–15 sierpnia 2026, od soboty do soboty",
   },
   {
     icon: MapPin,

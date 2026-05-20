@@ -49,8 +49,8 @@ export interface PaymentRecord {
 
 // Trip config
 export const TRIP_CONFIG = {
-  departureDate: new Date("2026-08-01T10:00:00"),
-  returnDate: new Date("2026-08-08T10:00:00"),
+  departureDate: new Date("2026-08-08T10:00:00"),
+  returnDate: new Date("2026-08-15T10:00:00"),
   location: "Mazury, Polska",
   totalPeople: 24,
   boatModel: "Antila 33.3",
@@ -178,7 +178,7 @@ export const ANNOUNCEMENTS: Announcement[] = [
     id: "a1",
     title: "🎉 Ruszamy z organizacją!",
     content:
-      "Cześć ekipo! Jachty 2026 nabierają kształtów. 3 Antile 33.3, pierwsza połowa sierpnia, Mazury. Będzie epicko! Wpłaty ruszają - szczegóły w zakładce Koszty.",
+      "Cześć ekipo! Jachty 2026 nabierają kształtów. 3 Antile 33.3, 8–15 sierpnia, Mazury. Będzie epicko! Wpłaty ruszają - szczegóły w zakładce Koszty.",
     date: "2026-05-12",
     author: "Mikołaj",
     pinned: true,
@@ -188,7 +188,7 @@ export const ANNOUNCEMENTS: Announcement[] = [
     id: "a2",
     title: "📋 Ankieta - dokładny termin",
     content:
-      "Wypełnijcie ankietę dotyczącą dokładnego terminu! Celujemy w pierwszą połowę sierpnia, od soboty do soboty. Link do ankiety wkrótce.",
+      "Termin ustalony! Płyniemy 8–15 sierpnia 2026, od soboty do soboty. Zarezerwujcie sobie ten tydzień!",
     date: "2026-05-12",
     author: "Mikołaj",
     type: "info",
