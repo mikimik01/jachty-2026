@@ -82,40 +82,51 @@ export default function WplatyPage() {
               <div className="space-y-3">
                 {allPeople
                   .sort((a, b) => b.paid - a.paid)
-                  .map((person, i) => (
-                    <motion.div
-                      key={person.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.03 }}
-                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/30 transition-colors"
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                          person.paid > 0
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                            : "bg-muted text-muted-foreground"
-                        }`}
+                  .map((person, i) => {
+                    const maxPaid = allPeople.reduce((max, p) => Math.max(max, p.paid), 1);
+                    const intensity = person.paid / maxPaid; // 0..1
+
+                    return (
+                      <motion.div
+                        key={person.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.03 }}
+                        className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/30 transition-colors"
                       >
-                        {person.name.charAt(0)}
-                      </div>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                            person.paid > 0
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                          }`}
+                        >
+                          {person.name.charAt(0)}
+                        </div>
 
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{person.name}</p>
-                      </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{person.name}</p>
+                        </div>
 
-                      <span className={`font-semibold text-sm ${
-                        person.paid > 0
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-muted-foreground"
-                      }`}>
-                        {person.paid > 0
-                          ? `${person.paid.toLocaleString("pl-PL")} zł`
-                          : "—"}
-                      </span>
-                    </motion.div>
-                  ))}
+                        {person.paid > 0 ? (
+                          <span
+                            className="text-sm"
+                            style={{
+                              color: `color-mix(in srgb, #059669 ${Math.round(30 + intensity * 70)}%, #6ee7b7)`,
+                              fontWeight: intensity > 0.5 ? 800 : intensity > 0.25 ? 600 : 500,
+                            }}
+                          >
+                            {person.paid.toLocaleString("pl-PL")} zł
+                          </span>
+                        ) : (
+                          <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                            0 zł
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>

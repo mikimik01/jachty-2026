@@ -165,8 +165,7 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
   const [newName, setNewName] = useState("");
   const [newBoatId, setNewBoatId] = useState("");
   const [busy, setBusy] = useState(false);
-  const [payingPersonId, setPayingPersonId] = useState<string | null>(null);
-  const [payAmount, setPayAmount] = useState("");
+  const [paymentInputs, setPaymentInputs] = useState<Record<string, string>>({});
 
   const handleAdd = async () => {
     if (!newName.trim() || !isLive) return;
@@ -176,7 +175,7 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
       setNewName("");
       setNewBoatId("");
       await refresh();
-    } finally {1111
+    } finally {
       setBusy(false);
     }
   };
@@ -199,17 +198,120 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
     await refresh();
   };
 
-  const handleAddPayment = async (personId: string) => {
-    if (!payAmount || !isLive) return;
+  const setPayment = (personId: string, value: string) => {
+    setPaymentInputs((prev) => ({ ...prev, [personId]: value }));
+  };
+
+  const pendingPayments = Object.entries(paymentInputs).filter(
+    ([, val]) => val && parseFloat(val) > 0
+  );
+
+  const handleSaveAllPayments = async () => {
+    if (!isLive || pendingPayments.length === 0) return;
     setBusy(true);
     try {
-      await createPayment({ person_id: personId, amount: parseFloat(payAmount), note: null });
-      setPayingPersonId(null);
-      setPayAmount("");
+      await Promise.all(
+        pendingPayments.map(([personId, amount]) =>
+          createPayment({ person_id: personId, amount: parseFloat(amount), note: null })
+        )
+      );
+      setPaymentInputs({});
       await refresh();
     } finally {
       setBusy(false);
     }
+  };
+
+  const maxPaid = Math.max(...data.people.map((p) => p.paid), 1);
+
+  const renderPersonRow = (person: PersonData, showBoatSelect: boolean) => {
+    const intensity = maxPaid > 0 ? person.paid / maxPaid : 0;
+
+    return (
+    <div key={person.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 text-sm">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+        person.is_captain
+          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+          : "bg-primary/10 text-primary"
+      }`}>
+        {person.name.charAt(0)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1">
+          <span className="font-medium truncate">{person.name}</span>
+          {person.is_captain && (
+            <Badge variant="secondary" className="text-xs shrink-0">👑</Badge>
+          )}
+          {person.paid > 0 ? (
+            <span
+              className="text-xs shrink-0"
+              style={{
+                color: `color-mix(in srgb, #059669 ${Math.round(30 + intensity * 70)}%, #6ee7b7)`,
+                fontWeight: intensity > 0.5 ? 800 : intensity > 0.25 ? 600 : 500,
+              }}
+            >
+              ({person.paid.toLocaleString("pl-PL")} zł)
+            </span>
+          ) : (
+            <span className="text-xs shrink-0 font-semibold text-red-600 dark:text-red-400">
+              (0 zł)
+            </span>
+          )}
+        </div>
+      </div>
+      <Input
+        type="number"
+        placeholder="Wpłata"
+        value={paymentInputs[person.id] ?? ""}
+        onChange={(e) => setPayment(person.id, e.target.value)}
+        className="h-8 w-24 text-xs shrink-0"
+        disabled={!isLive}
+      />
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          variant="ghost" size="sm"
+          onClick={() => handleToggleCaptain(person.id, person.is_captain)}
+          className="text-xs h-8 px-2 hidden md:inline-flex"
+          disabled={!isLive}
+        >
+          {person.is_captain ? "Zdejmij" : "👑"}
+        </Button>
+        {showBoatSelect ? (
+          <select
+            value={person.boat_id ?? ""}
+            onChange={(e) => handleMove(person.id, e.target.value || null)}
+            className="h-8 px-2 rounded border border-input bg-background text-xs"
+            disabled={!isLive}
+          >
+            <option value="">Bez łódki</option>
+            {data.boats.map((b) => (
+              <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
+            ))}
+          </select>
+        ) : (
+          <select
+            value=""
+            onChange={(e) => handleMove(person.id, e.target.value || null)}
+            className="h-8 px-2 rounded border border-input bg-background text-xs"
+            disabled={!isLive}
+          >
+            <option value="">Przypisz...</option>
+            {data.boats.map((b) => (
+              <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
+            ))}
+          </select>
+        )}
+        <Button
+          variant="ghost" size="icon"
+          onClick={() => handleDelete(person.id)}
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          disabled={!isLive}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
+    );
   };
 
   return (
@@ -249,6 +351,28 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
         </CardContent>
       </Card>
 
+      {/* Batch save payments */}
+      {pendingPayments.length > 0 && (
+        <div className="sticky top-20 z-10">
+          <Card className="border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/30 shadow-lg">
+            <CardContent className="p-4 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                💸 {pendingPayments.length} {pendingPayments.length === 1 ? "wpłata" : "wpłat"} do zapisania
+                {" "}({pendingPayments.reduce((s, [, v]) => s + parseFloat(v), 0).toLocaleString("pl-PL")} zł)
+              </span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" onClick={() => setPaymentInputs({})}>
+                  Anuluj
+                </Button>
+                <Button size="sm" onClick={handleSaveAllPayments} disabled={busy} className="gap-2">
+                  <Save className="h-4 w-4" /> Zapisz wszystkie
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* People by boat */}
       {data.boats.map((boat) => (
         <Card key={boat.id} className="border-border/50">
@@ -261,84 +385,8 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {boat.crew.map((person: PersonData) => (
-                <div key={person.id} className="p-2 rounded-lg hover:bg-muted/30 text-sm space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                        person.is_captain
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          : "bg-primary/10 text-primary"
-                      }`}>
-                        {person.name.charAt(0)}
-                      </div>
-                      <span className="font-medium">{person.name}</span>
-                      {person.is_captain && (
-                        <Badge variant="secondary" className="text-xs">👑 Kapitan</Badge>
-                      )}
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({person.paid.toLocaleString("pl-PL")} zł)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost" size="sm"
-                        onClick={() => { setPayingPersonId(payingPersonId === person.id ? null : person.id); setPayAmount(""); }}
-                        className="text-xs h-8 text-emerald-600 dark:text-emerald-400"
-                        disabled={!isLive}
-                      >
-                        💸 Wpłata
-                      </Button>
-                      <Button
-                        variant="ghost" size="sm"
-                        onClick={() => handleToggleCaptain(person.id, person.is_captain)}
-                        className="text-xs h-8"
-                        disabled={!isLive}
-                      >
-                        {person.is_captain ? "Zdejmij kapitana" : "👑 Kapitan"}
-                      </Button>
-                      <select
-                        value={person.boat_id ?? ""}
-                        onChange={(e) => handleMove(person.id, e.target.value || null)}
-                        className="h-8 px-2 rounded border border-input bg-background text-xs"
-                        disabled={!isLive}
-                      >
-                        <option value="">Bez łódki</option>
-                        {data.boats.map((b) => (
-                          <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
-                        ))}
-                      </select>
-                      <Button
-                        variant="ghost" size="icon"
-                        onClick={() => handleDelete(person.id)}
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        disabled={!isLive}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  {payingPersonId === person.id && (
-                    <div className="flex items-center gap-2 pl-10">
-                      <Input
-                        type="number"
-                        placeholder="Kwota (PLN)"
-                        value={payAmount}
-                        onChange={(e) => setPayAmount(e.target.value)}
-                        className="h-8 w-32 text-xs"
-                        onKeyDown={(e) => e.key === "Enter" && handleAddPayment(person.id)}
-                      />
-                      <Button size="sm" className="h-8 text-xs" onClick={() => handleAddPayment(person.id)} disabled={!payAmount || busy}>
-                        Zapisz
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setPayingPersonId(null)}>
-                        Anuluj
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="space-y-1">
+              {boat.crew.map((person: PersonData) => renderPersonRow(person, true))}
               {boat.crew.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">Brak osób</p>
               )}
@@ -356,66 +404,8 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {data.unassignedPeople.map((person) => (
-                <div key={person.id} className="p-2 rounded-lg hover:bg-muted/30 text-sm space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{person.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({person.paid.toLocaleString("pl-PL")} zł)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost" size="sm"
-                        onClick={() => { setPayingPersonId(payingPersonId === person.id ? null : person.id); setPayAmount(""); }}
-                        className="text-xs h-8 text-emerald-600 dark:text-emerald-400"
-                        disabled={!isLive}
-                      >
-                        💸 Wpłata
-                      </Button>
-                      <select
-                        value=""
-                        onChange={(e) => handleMove(person.id, e.target.value || null)}
-                        className="h-8 px-2 rounded border border-input bg-background text-xs"
-                        disabled={!isLive}
-                      >
-                        <option value="">Przypisz do łódki...</option>
-                        {data.boats.map((b) => (
-                          <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
-                        ))}
-                      </select>
-                      <Button
-                        variant="ghost" size="icon"
-                        onClick={() => handleDelete(person.id)}
-                        className="h-8 w-8 text-destructive"
-                        disabled={!isLive}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  {payingPersonId === person.id && (
-                    <div className="flex items-center gap-2 pl-4">
-                      <Input
-                        type="number"
-                        placeholder="Kwota (PLN)"
-                        value={payAmount}
-                        onChange={(e) => setPayAmount(e.target.value)}
-                        className="h-8 w-32 text-xs"
-                        onKeyDown={(e) => e.key === "Enter" && handleAddPayment(person.id)}
-                      />
-                      <Button size="sm" className="h-8 text-xs" onClick={() => handleAddPayment(person.id)} disabled={!payAmount || busy}>
-                        Zapisz
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setPayingPersonId(null)}>
-                        Anuluj
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="space-y-1">
+              {data.unassignedPeople.map((person) => renderPersonRow(person, false))}
             </div>
           </CardContent>
         </Card>
