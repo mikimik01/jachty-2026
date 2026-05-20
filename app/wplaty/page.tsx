@@ -3,10 +3,8 @@
 import { useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { CheckCircle2, Clock, AlertCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { SectionHeader, FadeIn } from "@/components/shared";
 import { useData } from "@/lib/use-data";
 
@@ -15,12 +13,6 @@ export default function WplatyPage() {
 
   const allPeople = data?.people ?? [];
   const totalCollected = allPeople.reduce((sum, p) => sum + p.paid, 0);
-  const totalNeeded = allPeople.reduce((sum, p) => sum + p.total_due, 0);
-  const overallProgress = totalNeeded > 0 ? Math.round((totalCollected / totalNeeded) * 100) : 0;
-
-  const paidFull = allPeople.filter((p) => p.paid >= p.total_due).length;
-  const paidPartial = allPeople.filter((p) => p.paid > 0 && p.paid < p.total_due).length;
-  const paidNothing = allPeople.filter((p) => p.paid === 0).length;
 
   const confettiFired = useRef(false);
 
@@ -36,10 +28,10 @@ export default function WplatyPage() {
   }, []);
 
   useEffect(() => {
-    if (overallProgress >= 100) {
+    if (allPeople.length > 0 && allPeople.every(p => p.paid > 0)) {
       fireConfetti();
     }
-  }, [overallProgress, fireConfetti]);
+  }, [allPeople, fireConfetti]);
 
   if (loading || !data) {
     return (
@@ -66,52 +58,18 @@ export default function WplatyPage() {
         <FadeIn>
           <Card className="mb-8 border-border/50 overflow-hidden">
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-8">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-                <div>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
-                    Zebrano łącznie
-                  </p>
-                  <p className="text-4xl md:text-5xl font-bold text-gradient">
-                    {totalCollected.toLocaleString("pl-PL")} zł
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    z {totalNeeded.toLocaleString("pl-PL")} zł potrzebnych
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-6xl font-bold text-gradient">
-                    {overallProgress}%
-                  </p>
-                </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+                  Zebrano łącznie
+                </p>
+                <p className="text-4xl md:text-5xl font-bold text-gradient">
+                  {totalCollected.toLocaleString("pl-PL")} zł
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  od {allPeople.filter(p => p.paid > 0).length} z {allPeople.length} osób
+                </p>
               </div>
-              <Progress value={overallProgress} className="h-4" />
             </div>
-
-            <CardContent className="p-6">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    <span className="text-2xl font-bold">{paidFull}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Wpłacone w całości</p>
-                </div>
-                <div>
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <Clock className="h-5 w-5 text-amber-500" />
-                    <span className="text-2xl font-bold">{paidPartial}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Częściowo wpłacone</p>
-                </div>
-                <div>
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <AlertCircle className="h-5 w-5 text-red-500" />
-                    <span className="text-2xl font-bold">{paidNothing}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Brak wpłaty</p>
-                </div>
-              </div>
-            </CardContent>
           </Card>
         </FadeIn>
 
@@ -119,70 +77,45 @@ export default function WplatyPage() {
         <FadeIn delay={0.2}>
           <Card className="mb-8 border-border/50">
             <CardContent className="p-6">
-              <h3 className="font-semibold mb-6 text-lg">Status wpłat</h3>
+              <h3 className="font-semibold mb-6 text-lg">Wpłaty wg osób</h3>
 
               <div className="space-y-3">
                 {allPeople
-                  .sort((a, b) => {
-                    const aRatio = a.total_due > 0 ? a.paid / a.total_due : 0;
-                    const bRatio = b.total_due > 0 ? b.paid / b.total_due : 0;
-                    return bRatio - aRatio;
-                  })
-                  .map((person, i) => {
-                    const progress = person.total_due > 0
-                      ? Math.round((person.paid / person.total_due) * 100)
-                      : 0;
-                    const remaining = person.total_due - person.paid;
-                    const isPaid = remaining <= 0;
-
-                    return (
-                      <motion.div
-                        key={person.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.03 }}
-                        className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/30 transition-colors"
+                  .sort((a, b) => b.paid - a.paid)
+                  .map((person, i) => (
+                    <motion.div
+                      key={person.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.03 }}
+                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/30 transition-colors"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                          person.paid > 0
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-muted text-muted-foreground"
+                        }`}
                       >
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                            isPaid
-                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                              : person.paid > 0
-                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                          }`}
-                        >
-                          {person.name.charAt(0)}
-                        </div>
+                        {person.name.charAt(0)}
+                      </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="font-medium text-sm">{person.name}</p>
-                            <p className="text-sm font-medium">
-                              {person.paid.toLocaleString("pl-PL")} /{" "}
-                              {person.total_due.toLocaleString("pl-PL")} zł
-                            </p>
-                          </div>
-                          <Progress value={progress} className="h-1.5" />
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{person.name}</p>
+                      </div>
 
-                        <Badge
-                          className={`shrink-0 text-xs ${
-                            isPaid
-                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200"
-                              : person.paid > 0
-                              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200"
-                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200"
-                          }`}
-                        >
-                          {isPaid
-                            ? "✓ OK"
-                            : `-${remaining.toLocaleString("pl-PL")} zł`}
-                        </Badge>
-                      </motion.div>
-                    );
-                  })}
+                      <span className={`font-semibold text-sm ${
+                        person.paid > 0
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-muted-foreground"
+                      }`}>
+                        {person.paid > 0
+                          ? `${person.paid.toLocaleString("pl-PL")} zł`
+                          : "—"}
+                      </span>
+                    </motion.div>
+                  ))}
               </div>
             </CardContent>
           </Card>

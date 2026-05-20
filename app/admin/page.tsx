@@ -165,6 +165,8 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
   const [newName, setNewName] = useState("");
   const [newBoatId, setNewBoatId] = useState("");
   const [busy, setBusy] = useState(false);
+  const [payingPersonId, setPayingPersonId] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState("");
 
   const handleAdd = async () => {
     if (!newName.trim() || !isLive) return;
@@ -174,7 +176,7 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
       setNewName("");
       setNewBoatId("");
       await refresh();
-    } finally {
+    } finally {1111
       setBusy(false);
     }
   };
@@ -195,6 +197,19 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
     if (!isLive) return;
     await updatePerson(personId, { is_captain: !current });
     await refresh();
+  };
+
+  const handleAddPayment = async (personId: string) => {
+    if (!payAmount || !isLive) return;
+    setBusy(true);
+    try {
+      await createPayment({ person_id: personId, amount: parseFloat(payAmount), note: null });
+      setPayingPersonId(null);
+      setPayAmount("");
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -248,49 +263,80 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
           <CardContent>
             <div className="space-y-2">
               {boat.crew.map((person: PersonData) => (
-                <div key={person.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                      person.is_captain
-                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                        : "bg-primary/10 text-primary"
-                    }`}>
-                      {person.name.charAt(0)}
+                <div key={person.id} className="p-2 rounded-lg hover:bg-muted/30 text-sm space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                        person.is_captain
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                          : "bg-primary/10 text-primary"
+                      }`}>
+                        {person.name.charAt(0)}
+                      </div>
+                      <span className="font-medium">{person.name}</span>
+                      {person.is_captain && (
+                        <Badge variant="secondary" className="text-xs">👑 Kapitan</Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({person.paid.toLocaleString("pl-PL")} zł)
+                      </span>
                     </div>
-                    <span className="font-medium">{person.name}</span>
-                    {person.is_captain && (
-                      <Badge variant="secondary" className="text-xs">👑 Kapitan</Badge>
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost" size="sm"
+                        onClick={() => { setPayingPersonId(payingPersonId === person.id ? null : person.id); setPayAmount(""); }}
+                        className="text-xs h-8 text-emerald-600 dark:text-emerald-400"
+                        disabled={!isLive}
+                      >
+                        💸 Wpłata
+                      </Button>
+                      <Button
+                        variant="ghost" size="sm"
+                        onClick={() => handleToggleCaptain(person.id, person.is_captain)}
+                        className="text-xs h-8"
+                        disabled={!isLive}
+                      >
+                        {person.is_captain ? "Zdejmij kapitana" : "👑 Kapitan"}
+                      </Button>
+                      <select
+                        value={person.boat_id ?? ""}
+                        onChange={(e) => handleMove(person.id, e.target.value || null)}
+                        className="h-8 px-2 rounded border border-input bg-background text-xs"
+                        disabled={!isLive}
+                      >
+                        <option value="">Bez łódki</option>
+                        {data.boats.map((b) => (
+                          <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
+                        ))}
+                      </select>
+                      <Button
+                        variant="ghost" size="icon"
+                        onClick={() => handleDelete(person.id)}
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        disabled={!isLive}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost" size="sm"
-                      onClick={() => handleToggleCaptain(person.id, person.is_captain)}
-                      className="text-xs h-8"
-                      disabled={!isLive}
-                    >
-                      {person.is_captain ? "Zdejmij kapitana" : "👑 Kapitan"}
-                    </Button>
-                    <select
-                      value={person.boat_id ?? ""}
-                      onChange={(e) => handleMove(person.id, e.target.value || null)}
-                      className="h-8 px-2 rounded border border-input bg-background text-xs"
-                      disabled={!isLive}
-                    >
-                      <option value="">Bez łódki</option>
-                      {data.boats.map((b) => (
-                        <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
-                      ))}
-                    </select>
-                    <Button
-                      variant="ghost" size="icon"
-                      onClick={() => handleDelete(person.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      disabled={!isLive}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  {payingPersonId === person.id && (
+                    <div className="flex items-center gap-2 pl-10">
+                      <Input
+                        type="number"
+                        placeholder="Kwota (PLN)"
+                        value={payAmount}
+                        onChange={(e) => setPayAmount(e.target.value)}
+                        className="h-8 w-32 text-xs"
+                        onKeyDown={(e) => e.key === "Enter" && handleAddPayment(person.id)}
+                      />
+                      <Button size="sm" className="h-8 text-xs" onClick={() => handleAddPayment(person.id)} disabled={!payAmount || busy}>
+                        Zapisz
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setPayingPersonId(null)}>
+                        Anuluj
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
               {boat.crew.length === 0 && (
@@ -312,29 +358,62 @@ function PeopleTab({ data, refresh, isLive }: TabProps) {
           <CardContent>
             <div className="space-y-2">
               {data.unassignedPeople.map((person) => (
-                <div key={person.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30 text-sm">
-                  <span className="font-medium">{person.name}</span>
-                  <div className="flex items-center gap-1">
-                    <select
-                      value=""
-                      onChange={(e) => handleMove(person.id, e.target.value || null)}
-                      className="h-8 px-2 rounded border border-input bg-background text-xs"
-                      disabled={!isLive}
-                    >
-                      <option value="">Przypisz do łódki...</option>
-                      {data.boats.map((b) => (
-                        <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
-                      ))}
-                    </select>
-                    <Button
-                      variant="ghost" size="icon"
-                      onClick={() => handleDelete(person.id)}
-                      className="h-8 w-8 text-destructive"
-                      disabled={!isLive}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                <div key={person.id} className="p-2 rounded-lg hover:bg-muted/30 text-sm space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{person.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({person.paid.toLocaleString("pl-PL")} zł)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost" size="sm"
+                        onClick={() => { setPayingPersonId(payingPersonId === person.id ? null : person.id); setPayAmount(""); }}
+                        className="text-xs h-8 text-emerald-600 dark:text-emerald-400"
+                        disabled={!isLive}
+                      >
+                        💸 Wpłata
+                      </Button>
+                      <select
+                        value=""
+                        onChange={(e) => handleMove(person.id, e.target.value || null)}
+                        className="h-8 px-2 rounded border border-input bg-background text-xs"
+                        disabled={!isLive}
+                      >
+                        <option value="">Przypisz do łódki...</option>
+                        {data.boats.map((b) => (
+                          <option key={b.id} value={b.id}>{b.emoji} {b.name}</option>
+                        ))}
+                      </select>
+                      <Button
+                        variant="ghost" size="icon"
+                        onClick={() => handleDelete(person.id)}
+                        className="h-8 w-8 text-destructive"
+                        disabled={!isLive}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
+                  {payingPersonId === person.id && (
+                    <div className="flex items-center gap-2 pl-4">
+                      <Input
+                        type="number"
+                        placeholder="Kwota (PLN)"
+                        value={payAmount}
+                        onChange={(e) => setPayAmount(e.target.value)}
+                        className="h-8 w-32 text-xs"
+                        onKeyDown={(e) => e.key === "Enter" && handleAddPayment(person.id)}
+                      />
+                      <Button size="sm" className="h-8 text-xs" onClick={() => handleAddPayment(person.id)} disabled={!payAmount || busy}>
+                        Zapisz
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setPayingPersonId(null)}>
+                        Anuluj
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -562,7 +641,7 @@ function PaymentsTab({ data, refresh, isLive }: TabProps) {
               <option value="">Wybierz osobę...</option>
               {data.people.sort((a, b) => a.name.localeCompare(b.name)).map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} – brakuje {Math.max(0, p.total_due - p.paid).toLocaleString("pl-PL")} zł
+                  {p.name} ({p.paid.toLocaleString("pl-PL")} zł wpłacone)
                 </option>
               ))}
             </select>
